@@ -25,6 +25,8 @@
 
 struct obs_core *obs = NULL;
 
+static THREAD_LOCAL bool is_ui_thread = false;
+
 extern void add_default_module_paths(void);
 extern char *find_libobs_data_file(const char *file);
 
@@ -637,6 +639,11 @@ static bool obs_init_data(void)
 		goto fail;
 	if (pthread_mutex_init_recursive(&obs->data.draw_callbacks_mutex) != 0)
 		goto fail;
+
+	data->destruction_task_thread = os_task_thread_create();
+	if (!data->destruction_task_thread)
+		goto fail;
+
 	if (!obs_view_init(&data->main_view))
 		goto fail;
 
@@ -694,6 +701,7 @@ static void obs_free_data(void)
 	pthread_mutex_destroy(&data->encoders_mutex);
 	pthread_mutex_destroy(&data->services_mutex);
 	pthread_mutex_destroy(&data->draw_callbacks_mutex);
+	os_task_thread_destroy(data->destruction_task_thread);
 	da_free(data->draw_callbacks);
 	da_free(data->tick_callbacks);
 	obs_data_release(data->private_data);
@@ -2161,16 +2169,24 @@ void obs_context_data_insert(struct obs_context_data *context,
 
 void obs_context_data_remove(struct obs_context_data *context)
 {
-	if (context && context->mutex) {
+	if (context && context->prev_next) {
 		pthread_mutex_lock(context->mutex);
-		if (context->prev_next)
+		if (context->prev_next) {
 			*context->prev_next = context->next;
-		if (context->next)
+			context->prev_next = NULL;
+		}
+		if (context->next) {
 			context->next->prev_next = context->prev_next;
+			context->next = NULL;
+		}
 		pthread_mutex_unlock(context->mutex);
-
-		context->mutex = NULL;
 	}
+}
+
+void obs_context_wait(struct obs_context_data *context)
+{
+	pthread_mutex_lock(context->mutex);
+	pthread_mutex_unlock(context->mutex);
 }
 
 void obs_context_data_setname(struct obs_context_data *context,
@@ -2523,6 +2539,10 @@ static bool in_task_thread(enum obs_task_type type)
 
 	if (type == OBS_TASK_GRAPHICS)
 		return is_graphics_thread;
+	else if (type == OBS_TASK_UI)
+		return is_ui_thread;
+	else if (type == OBS_TASK_DESTROY)
+		return os_task_thread_inside(obs->data.destruction_task_thread);
 
 	assert(false);
 	return false;
@@ -2541,6 +2561,7 @@ void obs_queue_task(enum obs_task_type type, obs_task_t task, void *param,
 	} else {
 		if (in_task_thread(type)) {
 			task(param);
+
 		} else if (wait) {
 			struct task_wait_info info = {
 				.task = task,
@@ -2551,18 +2572,37 @@ void obs_queue_task(enum obs_task_type type, obs_task_t task, void *param,
 			obs_queue_task(type, task_wait_callback, &info, false);
 			os_event_wait(info.event);
 			os_event_destroy(info.event);
-		} else {
+
+		} else if (type == OBS_TASK_GRAPHICS) {
 			struct obs_core_video *video = &obs->video;
 			struct obs_task_info info = {task, param};
 
 			pthread_mutex_lock(&video->task_mutex);
 			circlebuf_push_back(&video->tasks, &info, sizeof(info));
 			pthread_mutex_unlock(&video->task_mutex);
+
+		} else if (type == OBS_TASK_DESTROY) {
+			os_task_t os_task = (os_task_t)task;
+			os_task_thread_queue_task(
+				obs->data.destruction_task_thread, os_task,
+				param);
 		}
 	}
+}
+
+void obs_wait_for_destroy_queue(void)
+{
+	os_task_thread_wait(obs->data.destruction_task_thread);
+}
+
+static void set_ui_thread(void *unused)
+{
+	is_ui_thread = true;
+	UNUSED_PARAMETER(unused);
 }
 
 void obs_set_ui_task_handler(obs_task_handler_t handler)
 {
 	obs->ui_task_handler = handler;
+	obs_queue_task(OBS_TASK_UI, set_ui_thread, NULL, false);
 }

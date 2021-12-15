@@ -4558,6 +4558,8 @@ void OBSBasic::ClearSceneData()
 	obs_enum_scenes(cb, nullptr);
 	obs_enum_sources(cb, nullptr);
 
+	obs_wait_for_destroy_queue();
+
 	if (api)
 		api->on_event(OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP);
 
