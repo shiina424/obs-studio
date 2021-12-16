@@ -116,7 +116,7 @@ static void *tiny_tubular_task_thread(void *param)
 
 		pthread_mutex_lock(&tt->mutex);
 		circlebuf_pop_front(&tt->tasks, &ti, sizeof(ti));
-		if (tt->tasks.size) {
+		if (tt->tasks.size && ti.task == stop_thread) {
 			circlebuf_push_back(&tt->tasks, &ti, sizeof(ti));
 			circlebuf_pop_front(&tt->tasks, &ti, sizeof(ti));
 		}
