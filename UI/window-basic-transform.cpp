@@ -134,8 +134,8 @@ void OBSBasicTransform::SetScene(OBSScene scene)
 
 void OBSBasicTransform::SetItem(OBSSceneItem newItem)
 {
-	QMetaObject::invokeMethod(this, "SetItemQt",
-				  Q_ARG(OBSSceneItem, OBSSceneItem(newItem)));
+	OBSApp::invoke(this, "SetItemQt",
+		       Q_ARG(OBSSceneItem, OBSSceneItem(newItem)));
 }
 
 void OBSBasicTransform::SetItemQt(OBSSceneItem newItem)

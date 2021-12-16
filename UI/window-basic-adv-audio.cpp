@@ -157,16 +157,16 @@ void OBSBasicAdvAudio::OBSSourceAdded(void *param, calldata_t *calldata)
 {
 	OBSSource source((obs_source_t *)calldata_ptr(calldata, "source"));
 
-	QMetaObject::invokeMethod(reinterpret_cast<OBSBasicAdvAudio *>(param),
-				  "SourceAdded", Q_ARG(OBSSource, source));
+	OBSApp::invoke(reinterpret_cast<OBSBasicAdvAudio *>(param),
+		       "SourceAdded", Q_ARG(OBSSource, source));
 }
 
 void OBSBasicAdvAudio::OBSSourceRemoved(void *param, calldata_t *calldata)
 {
 	OBSSource source((obs_source_t *)calldata_ptr(calldata, "source"));
 
-	QMetaObject::invokeMethod(reinterpret_cast<OBSBasicAdvAudio *>(param),
-				  "SourceRemoved", Q_ARG(OBSSource, source));
+	OBSApp::invoke(reinterpret_cast<OBSBasicAdvAudio *>(param),
+		       "SourceRemoved", Q_ARG(OBSSource, source));
 }
 
 inline void OBSBasicAdvAudio::AddAudioSource(obs_source_t *source)

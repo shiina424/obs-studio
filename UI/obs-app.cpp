@@ -1341,6 +1341,94 @@ const char *OBSApp::GetRenderModule() const
 	return (astrcmpi(renderer, "Direct3D 11") == 0) ? DL_D3D11 : DL_OPENGL;
 }
 
+OBSApp::InvokeParam::InvokeParam(QGenericArgument &arg_)
+{
+	type = QMetaType::type(arg_.name());
+	QMetaType t(type);
+
+	data = t.create(arg_.data());
+	arg = QGenericArgument(arg_.name(), data);
+}
+
+OBSApp::InvokeParam::InvokeParam(OBSApp::InvokeParam &&c)
+	: type(c.type), data(c.data), arg(c.arg)
+{
+	c.data = nullptr;
+}
+
+OBSApp::InvokeParam &OBSApp::InvokeParam::operator=(OBSApp::InvokeParam &&c)
+{
+	type = c.type;
+	data = c.data;
+	arg = c.arg;
+	c.data = nullptr;
+	return *this;
+}
+
+OBSApp::InvokeParam::~InvokeParam()
+{
+	if (data) {
+		QMetaType t(type);
+		t.destruct(data);
+	}
+}
+
+void OBSApp::makeInvokeCall()
+{
+	InvokeContainer ic;
+
+	{
+		lock_guard g(invokeMutex);
+		if (!invokeQueue.size())
+			return;
+
+		ic = std::move(invokeQueue[0]);
+		invokeQueue.pop_front();
+	}
+
+	if (!ic.obj)
+		return;
+
+	QMetaObject::invokeMethod(ic.obj.data(), ic.member, ic.val0.arg,
+				  ic.val1.arg, ic.val2.arg, ic.val3.arg,
+				  ic.val4.arg, ic.val5.arg);
+}
+
+bool OBSApp::processInvokeQueueInternal()
+{
+	invokeMutex.lock();
+	std::deque<InvokeContainer> queue(std::move(invokeQueue));
+	invokeMutex.unlock();
+
+	for (auto &ic : queue) {
+		if (!!ic.obj) {
+			QMetaObject::invokeMethod(ic.obj.data(), ic.member,
+						  ic.val0.arg, ic.val1.arg,
+						  ic.val2.arg, ic.val3.arg,
+						  ic.val4.arg, ic.val5.arg);
+		}
+	}
+
+	return !!queue.size();
+}
+
+void OBSApp::invokeInternal(QObject *obj, const char *member,
+			    QGenericArgument val0, QGenericArgument val1,
+			    QGenericArgument val2, QGenericArgument val3,
+			    QGenericArgument val4, QGenericArgument val5)
+{
+	if (QThread::currentThread() == qApp->thread()) {
+		QMetaObject::invokeMethod(obj, member, val0, val1, val2, val3,
+					  val4, val5);
+		return;
+	}
+
+	lock_guard g(invokeMutex);
+	invokeQueue.emplace_back(obj, member, val0, val1, val2, val3, val4,
+				 val5);
+	QMetaObject::invokeMethod(this, "makeInvokeCall");
+}
+
 static bool StartupOBS(const char *locale, profiler_name_store_t *store)
 {
 	char path[512];

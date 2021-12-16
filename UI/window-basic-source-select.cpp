@@ -70,8 +70,7 @@ void OBSBasicSourceSelect::OBSSourceAdded(void *data, calldata_t *calldata)
 		static_cast<OBSBasicSourceSelect *>(data);
 	obs_source_t *source = (obs_source_t *)calldata_ptr(calldata, "source");
 
-	QMetaObject::invokeMethod(window, "SourceAdded",
-				  Q_ARG(OBSSource, source));
+	OBSApp::invoke(window, "SourceAdded", Q_ARG(OBSSource, source));
 }
 
 void OBSBasicSourceSelect::OBSSourceRemoved(void *data, calldata_t *calldata)
@@ -80,8 +79,7 @@ void OBSBasicSourceSelect::OBSSourceRemoved(void *data, calldata_t *calldata)
 		static_cast<OBSBasicSourceSelect *>(data);
 	obs_source_t *source = (obs_source_t *)calldata_ptr(calldata, "source");
 
-	QMetaObject::invokeMethod(window, "SourceRemoved",
-				  Q_ARG(OBSSource, source));
+	OBSApp::invoke(window, "SourceRemoved", Q_ARG(OBSSource, source));
 }
 
 void OBSBasicSourceSelect::SourceAdded(OBSSource source)

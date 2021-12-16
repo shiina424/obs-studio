@@ -653,8 +653,8 @@ void OBSBasicFilters::OBSSourceFilterAdded(void *param, calldata_t *data)
 	OBSBasicFilters *window = reinterpret_cast<OBSBasicFilters *>(param);
 	obs_source_t *filter = (obs_source_t *)calldata_ptr(data, "filter");
 
-	QMetaObject::invokeMethod(window, "AddFilter",
-				  Q_ARG(OBSSource, OBSSource(filter)));
+	OBSApp::invoke(window, "AddFilter",
+		       Q_ARG(OBSSource, OBSSource(filter)));
 }
 
 void OBSBasicFilters::OBSSourceFilterRemoved(void *param, calldata_t *data)
@@ -662,8 +662,8 @@ void OBSBasicFilters::OBSSourceFilterRemoved(void *param, calldata_t *data)
 	OBSBasicFilters *window = reinterpret_cast<OBSBasicFilters *>(param);
 	obs_source_t *filter = (obs_source_t *)calldata_ptr(data, "filter");
 
-	QMetaObject::invokeMethod(window, "RemoveFilter",
-				  Q_ARG(OBSSource, OBSSource(filter)));
+	OBSApp::invoke(window, "RemoveFilter",
+		       Q_ARG(OBSSource, OBSSource(filter)));
 }
 
 void OBSBasicFilters::OBSSourceReordered(void *param, calldata_t *data)

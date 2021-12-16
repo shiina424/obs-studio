@@ -217,8 +217,8 @@ void SourceTreeItem::ReconnectSignals()
 			(obs_sceneitem_t *)calldata_ptr(cd, "item");
 
 		if (curItem == this_->sceneitem) {
-			QMetaObject::invokeMethod(this_->tree, "Remove",
-						  Q_ARG(OBSSceneItem, curItem));
+			OBSApp::invoke(this_->tree, "Remove",
+				       Q_ARG(OBSSceneItem, curItem));
 			curItem = nullptr;
 		}
 		if (!curItem)

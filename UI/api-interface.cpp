@@ -139,9 +139,8 @@ struct OBSStudioAPI : obs_frontend_callbacks {
 	void
 	obs_frontend_set_current_transition(obs_source_t *transition) override
 	{
-		QMetaObject::invokeMethod(main, "SetTransition",
-					  Q_ARG(OBSSource,
-						OBSSource(transition)));
+		OBSApp::invoke(main, "SetTransition",
+			       Q_ARG(OBSSource, OBSSource(transition)));
 	}
 
 	int obs_frontend_get_transition_duration(void) override
@@ -564,10 +563,9 @@ struct OBSStudioAPI : obs_frontend_callbacks {
 	obs_frontend_set_current_preview_scene(obs_source_t *scene) override
 	{
 		if (main->IsPreviewProgramMode()) {
-			QMetaObject::invokeMethod(main, "SetCurrentScene",
-						  Q_ARG(OBSSource,
-							OBSSource(scene)),
-						  Q_ARG(bool, false));
+			OBSApp::invoke(main, "SetCurrentScene",
+				       Q_ARG(OBSSource, OBSSource(scene)),
+				       Q_ARG(bool, false));
 		}
 	}
 
@@ -578,8 +576,8 @@ struct OBSStudioAPI : obs_frontend_callbacks {
 
 	void obs_frontend_take_source_screenshot(obs_source_t *source) override
 	{
-		QMetaObject::invokeMethod(main, "Screenshot",
-					  Q_ARG(OBSSource, OBSSource(source)));
+		OBSApp::invoke(main, "Screenshot",
+			       Q_ARG(OBSSource, OBSSource(source)));
 	}
 
 	obs_output_t *obs_frontend_get_virtualcam_output(void) override
@@ -608,14 +606,14 @@ struct OBSStudioAPI : obs_frontend_callbacks {
 
 	void obs_frontend_open_source_properties(obs_source_t *source) override
 	{
-		QMetaObject::invokeMethod(main, "OpenProperties",
-					  Q_ARG(OBSSource, OBSSource(source)));
+		OBSApp::invoke(main, "OpenProperties",
+			       Q_ARG(OBSSource, OBSSource(source)));
 	}
 
 	void obs_frontend_open_source_filters(obs_source_t *source) override
 	{
-		QMetaObject::invokeMethod(main, "OpenFilters",
-					  Q_ARG(OBSSource, OBSSource(source)));
+		OBSApp::invoke(main, "OpenFilters",
+			       Q_ARG(OBSSource, OBSSource(source)));
 	}
 
 	char *obs_frontend_get_current_record_output_path(void) override

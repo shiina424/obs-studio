@@ -30,6 +30,8 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include <deque>
 
 #include "window-main.hpp"
@@ -71,7 +73,51 @@ typedef std::function<void()> VoidFunc;
 class OBSApp : public QApplication {
 	Q_OBJECT
 
-private:
+	struct InvokeParam {
+		int type;
+		void *data;
+		QGenericArgument arg;
+
+		inline InvokeParam() {}
+		InvokeParam(QGenericArgument &arg);
+		InvokeParam(InvokeParam &c) = delete;
+		InvokeParam(InvokeParam &&c);
+		~InvokeParam();
+
+		InvokeParam &operator=(InvokeParam &&c);
+		InvokeParam &operator=(InvokeParam &c) = delete;
+	};
+
+	struct InvokeContainer {
+		QPointer<QObject> obj;
+		const char *member;
+		InvokeParam val0;
+		InvokeParam val1;
+		InvokeParam val2;
+		InvokeParam val3;
+		InvokeParam val4;
+		InvokeParam val5;
+
+		inline InvokeContainer() {}
+		inline InvokeContainer(QObject *obj, const char *member,
+				       QGenericArgument val0,
+				       QGenericArgument val1,
+				       QGenericArgument val2,
+				       QGenericArgument val3,
+				       QGenericArgument val4,
+				       QGenericArgument val5)
+			: obj(obj),
+			  member(member),
+			  val0(val0),
+			  val1(val1),
+			  val2(val2),
+			  val3(val3),
+			  val4(val4),
+			  val5(val5)
+		{
+		}
+	};
+
 	std::string locale;
 	std::string theme;
 	bool themeDarkMode = true;
@@ -79,6 +125,9 @@ private:
 	TextLookup textLookup;
 	QPointer<OBSMainWindow> mainWindow;
 	profiler_name_store_t *profilerNameStore = nullptr;
+
+	std::mutex invokeMutex;
+	std::deque<InvokeContainer> invokeQueue;
 
 	bool libobs_initialized = false;
 
@@ -104,6 +153,12 @@ private:
 	void ParseExtraThemeData(const char *path);
 	void AddExtraThemeColor(QPalette &pal, int group, const char *name,
 				uint32_t color);
+
+	void invokeInternal(QObject *obj, const char *member,
+			    QGenericArgument val0, QGenericArgument val1,
+			    QGenericArgument val2, QGenericArgument val3,
+			    QGenericArgument val4, QGenericArgument val5);
+	bool processInvokeQueueInternal();
 
 public:
 	OBSApp(int &argc, char **argv, profiler_name_store_t *store);
@@ -184,9 +239,27 @@ public:
 
 	inline void PopUITranslation() { translatorHooks.pop_front(); }
 
+	static inline void invoke(QObject *obj, const char *member,
+				  QGenericArgument val0 = QGenericArgument(),
+				  QGenericArgument val1 = QGenericArgument(),
+				  QGenericArgument val2 = QGenericArgument(),
+				  QGenericArgument val3 = QGenericArgument(),
+				  QGenericArgument val4 = QGenericArgument(),
+				  QGenericArgument val5 = QGenericArgument())
+	{
+		static_cast<OBSApp *>(qApp)->invokeInternal(
+			obj, member, val0, val1, val2, val3, val4, val5);
+	}
+
+	static inline bool processInvokeQueue()
+	{
+		return static_cast<OBSApp *>(qApp)->processInvokeQueueInternal();
+	}
+
 public slots:
 	void Exec(VoidFunc func);
-
+private slots:
+	void makeInvokeCall();
 signals:
 	void StyleChanged();
 };

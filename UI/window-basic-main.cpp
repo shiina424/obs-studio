@@ -3985,8 +3985,8 @@ void OBSBasic::SceneReordered(void *data, calldata_t *params)
 
 	obs_scene_t *scene = (obs_scene_t *)calldata_ptr(params, "scene");
 
-	QMetaObject::invokeMethod(window, "ReorderSources",
-				  Q_ARG(OBSScene, OBSScene(scene)));
+	OBSApp::invoke(window, "ReorderSources",
+		       Q_ARG(OBSScene, OBSScene(scene)));
 }
 
 void OBSBasic::SceneRefreshed(void *data, calldata_t *params)
@@ -3995,8 +3995,8 @@ void OBSBasic::SceneRefreshed(void *data, calldata_t *params)
 
 	obs_scene_t *scene = (obs_scene_t *)calldata_ptr(params, "scene");
 
-	QMetaObject::invokeMethod(window, "RefreshSources",
-				  Q_ARG(OBSScene, OBSScene(scene)));
+	OBSApp::invoke(window, "RefreshSources",
+		       Q_ARG(OBSScene, OBSScene(scene)));
 }
 
 void OBSBasic::SceneItemAdded(void *data, calldata_t *params)
@@ -4005,8 +4005,8 @@ void OBSBasic::SceneItemAdded(void *data, calldata_t *params)
 
 	obs_sceneitem_t *item = (obs_sceneitem_t *)calldata_ptr(params, "item");
 
-	QMetaObject::invokeMethod(window, "AddSceneItem",
-				  Q_ARG(OBSSceneItem, OBSSceneItem(item)));
+	OBSApp::invoke(window, "AddSceneItem",
+		       Q_ARG(OBSSceneItem, OBSSceneItem(item)));
 }
 
 void OBSBasic::SourceCreated(void *data, calldata_t *params)
@@ -4022,11 +4022,14 @@ void OBSBasic::SourceCreated(void *data, calldata_t *params)
 void OBSBasic::SourceRemoved(void *data, calldata_t *params)
 {
 	obs_source_t *source = (obs_source_t *)calldata_ptr(params, "source");
+	obs_source_t *ref = obs_source_get_ref(source);
+	if (!ref)
+		return;
 
 	if (obs_scene_from_source(source) != NULL)
-		QMetaObject::invokeMethod(static_cast<OBSBasic *>(data),
-					  "RemoveScene",
-					  Q_ARG(OBSSource, OBSSource(source)));
+		OBSApp::invoke(static_cast<OBSBasic *>(data), "RemoveScene",
+			       Q_ARG(OBSSource, OBSSource(source)));
+	obs_source_release(source);
 }
 
 void OBSBasic::SourceActivated(void *data, calldata_t *params)
@@ -4035,9 +4038,9 @@ void OBSBasic::SourceActivated(void *data, calldata_t *params)
 	uint32_t flags = obs_source_get_output_flags(source);
 
 	if (flags & OBS_SOURCE_AUDIO)
-		QMetaObject::invokeMethod(static_cast<OBSBasic *>(data),
-					  "ActivateAudioSource",
-					  Q_ARG(OBSSource, OBSSource(source)));
+		OBSApp::invoke(static_cast<OBSBasic *>(data),
+			       "ActivateAudioSource",
+			       Q_ARG(OBSSource, OBSSource(source)));
 }
 
 void OBSBasic::SourceDeactivated(void *data, calldata_t *params)
@@ -4046,9 +4049,9 @@ void OBSBasic::SourceDeactivated(void *data, calldata_t *params)
 	uint32_t flags = obs_source_get_output_flags(source);
 
 	if (flags & OBS_SOURCE_AUDIO)
-		QMetaObject::invokeMethod(static_cast<OBSBasic *>(data),
-					  "DeactivateAudioSource",
-					  Q_ARG(OBSSource, OBSSource(source)));
+		OBSApp::invoke(static_cast<OBSBasic *>(data),
+			       "DeactivateAudioSource",
+			       Q_ARG(OBSSource, OBSSource(source)));
 }
 
 void OBSBasic::SourceAudioActivated(void *data, calldata_t *params)
@@ -4056,17 +4059,16 @@ void OBSBasic::SourceAudioActivated(void *data, calldata_t *params)
 	obs_source_t *source = (obs_source_t *)calldata_ptr(params, "source");
 
 	if (obs_source_active(source))
-		QMetaObject::invokeMethod(static_cast<OBSBasic *>(data),
-					  "ActivateAudioSource",
-					  Q_ARG(OBSSource, OBSSource(source)));
+		OBSApp::invoke(static_cast<OBSBasic *>(data),
+			       "ActivateAudioSource",
+			       Q_ARG(OBSSource, OBSSource(source)));
 }
 
 void OBSBasic::SourceAudioDeactivated(void *data, calldata_t *params)
 {
 	obs_source_t *source = (obs_source_t *)calldata_ptr(params, "source");
-	QMetaObject::invokeMethod(static_cast<OBSBasic *>(data),
-				  "DeactivateAudioSource",
-				  Q_ARG(OBSSource, OBSSource(source)));
+	OBSApp::invoke(static_cast<OBSBasic *>(data), "DeactivateAudioSource",
+		       Q_ARG(OBSSource, OBSSource(source)));
 }
 
 void OBSBasic::SourceRenamed(void *data, calldata_t *params)
@@ -4075,10 +4077,10 @@ void OBSBasic::SourceRenamed(void *data, calldata_t *params)
 	const char *newName = calldata_string(params, "new_name");
 	const char *prevName = calldata_string(params, "prev_name");
 
-	QMetaObject::invokeMethod(static_cast<OBSBasic *>(data),
-				  "RenameSources", Q_ARG(OBSSource, source),
-				  Q_ARG(QString, QT_UTF8(newName)),
-				  Q_ARG(QString, QT_UTF8(prevName)));
+	OBSApp::invoke(static_cast<OBSBasic *>(data), "RenameSources",
+		       Q_ARG(OBSSource, source),
+		       Q_ARG(QString, QT_UTF8(newName)),
+		       Q_ARG(QString, QT_UTF8(prevName)));
 
 	blog(LOG_INFO, "Source '%s' renamed to '%s'", prevName, newName);
 }
@@ -4558,12 +4560,13 @@ void OBSBasic::ClearSceneData()
 	obs_enum_scenes(cb, nullptr);
 	obs_enum_sources(cb, nullptr);
 
-	obs_wait_for_destroy_queue();
-
 	if (api)
 		api->on_event(OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP);
 
 	undo_s.clear();
+
+	while (OBSApp::processInvokeQueue())
+		obs_wait_for_destroy_queue();
 
 	disableSaving--;
 

@@ -637,6 +637,12 @@ void obs_source_destroy(struct obs_source *source)
 	blog(LOG_DEBUG, "%ssource '%s' destroyed",
 	     source->context.private ? "private " : "", source->context.name);
 
+	if (source->context.name &&
+	    strcmp(source->context.name, "1498770118733.gif") == 0) {
+		int test = 0;
+		test = 1;
+	}
+
 	/* defer source destroy */
 	os_task_thread_queue_task(obs->data.destruction_task_thread,
 				  (os_task_t)obs_source_destroy_defer, source);
@@ -808,6 +814,11 @@ void obs_source_remove(obs_source_t *source)
 		return;
 
 	if (!source->removed) {
+		if (source->context.name &&
+		    strcmp(source->context.name, "1498770118733.gif") == 0) {
+			int test = 0;
+			test = 1;
+		}
 		source->removed = true;
 		obs_source_dosignal(source, "source_remove", "remove");
 	}
