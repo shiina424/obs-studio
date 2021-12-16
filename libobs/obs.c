@@ -1454,49 +1454,72 @@ void obs_set_output_source(uint32_t channel, obs_source_t *source)
 void obs_enum_sources(bool (*enum_proc)(void *, obs_source_t *), void *param)
 {
 	obs_source_t *source;
+	DARRAY(obs_source_t *) lmao;
+
+	da_init(lmao);
 
 	pthread_mutex_lock(&obs->data.sources_mutex);
 	source = obs->data.first_source;
 
 	while (source) {
-		obs_source_t *next_source =
-			(obs_source_t *)source->context.next;
+		obs_source_t *s = obs_source_get_ref(source);
+		if (s)
+			da_push_back(lmao, &s);
+		source = (obs_source_t *)source->context.next;
+	}
+
+	pthread_mutex_unlock(&obs->data.sources_mutex);
+
+	for (size_t i = 0; i < lmao.num; i++) {
+		obs_source_t *source = lmao.array[i];
 
 		if (strcmp(source->info.id, group_info.id) == 0 &&
 		    !enum_proc(param, source)) {
+			obs_source_release(source);
 			break;
 		} else if (source->info.type == OBS_SOURCE_TYPE_INPUT &&
 			   !source->context.private &&
 			   !enum_proc(param, source)) {
+			obs_source_release(source);
 			break;
 		}
 
-		source = next_source;
+		obs_source_release(source);
 	}
 
-	pthread_mutex_unlock(&obs->data.sources_mutex);
+	da_free(lmao);
 }
 
 void obs_enum_scenes(bool (*enum_proc)(void *, obs_source_t *), void *param)
 {
 	obs_source_t *source;
+	DARRAY(obs_source_t *) lmao;
+
+	da_init(lmao);
 
 	pthread_mutex_lock(&obs->data.sources_mutex);
 	source = obs->data.first_source;
 
 	while (source) {
-		obs_source_t *next_source =
-			(obs_source_t *)source->context.next;
-
-		if (source->info.type == OBS_SOURCE_TYPE_SCENE &&
-		    !source->context.private && !enum_proc(param, source)) {
-			break;
-		}
-
-		source = next_source;
+		obs_source_t *s = obs_source_get_ref(source);
+		if (s)
+			da_push_back(lmao, &s);
+		source = (obs_source_t *)source->context.next;
 	}
 
 	pthread_mutex_unlock(&obs->data.sources_mutex);
+
+	for (size_t i = 0; i < lmao.num; i++) {
+		obs_source_t *source = lmao.array[i];
+
+		if (source->info.type == OBS_SOURCE_TYPE_SCENE &&
+		    !source->context.private && !enum_proc(param, source)) {
+			obs_source_release(source);
+			break;
+		}
+
+		obs_source_release(source);
+	}
 }
 
 static inline void obs_enum(void *pstart, pthread_mutex_t *mutex, void *proc,

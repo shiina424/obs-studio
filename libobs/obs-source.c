@@ -646,14 +646,14 @@ static void obs_source_destroy_defer(struct obs_source *source)
 {
 	size_t i;
 
-	blog(LOG_DEBUG, "%ssource '%s' actually destroyed",
-	     source->context.private ? "private " : "", source->context.name);
-
 	obs_source_dosignal(source, "source_destroy", "destroy");
 
 	/* prevents the destruction of sources if destroy triggered inside of
 	 * a video tick call */
 	obs_context_wait(&source->context);
+
+	blog(LOG_DEBUG, "%ssource '%s' actually destroyed",
+	     source->context.private ? "private " : "", source->context.name);
 
 	if (source->context.data) {
 		source->info.destroy(source->context.data);
