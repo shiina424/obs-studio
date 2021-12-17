@@ -634,15 +634,6 @@ void obs_source_destroy(struct obs_source *source)
 
 	obs_context_data_remove(&source->context);
 
-	blog(LOG_DEBUG, "%ssource '%s' destroyed",
-	     source->context.private ? "private " : "", source->context.name);
-
-	if (source->context.name &&
-	    strcmp(source->context.name, "1498770118733.gif") == 0) {
-		int test = 0;
-		test = 1;
-	}
-
 	/* defer source destroy */
 	os_task_thread_queue_task(obs->data.destruction_task_thread,
 				  (os_task_t)obs_source_destroy_defer, source);
@@ -658,13 +649,13 @@ static void obs_source_destroy_defer(struct obs_source *source)
 	 * a video tick call */
 	obs_context_wait(&source->context);
 
-	blog(LOG_DEBUG, "%ssource '%s' actually destroyed",
-	     source->context.private ? "private " : "", source->context.name);
-
 	if (source->context.data) {
 		source->info.destroy(source->context.data);
 		source->context.data = NULL;
 	}
+
+	blog(LOG_DEBUG, "%ssource '%s' destroyed",
+	     source->context.private ? "private " : "", source->context.name);
 
 	audio_monitor_destroy(source->monitor);
 

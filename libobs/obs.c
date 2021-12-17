@@ -1459,19 +1459,22 @@ void obs_enum_sources(bool (*enum_proc)(void *, obs_source_t *), void *param)
 	source = obs->data.first_source;
 
 	while (source) {
-		obs_source_t *next_source =
-			(obs_source_t *)source->context.next;
-
-		if (strcmp(source->info.id, group_info.id) == 0 &&
-		    !enum_proc(param, source)) {
-			break;
-		} else if (source->info.type == OBS_SOURCE_TYPE_INPUT &&
-			   !source->context.private &&
-			   !enum_proc(param, source)) {
-			break;
+		obs_source_t *s = obs_source_get_ref(source);
+		if (s) {
+			if (strcmp(s->info.id, group_info.id) == 0 &&
+			    !enum_proc(param, s)) {
+				obs_source_release(s);
+				break;
+			} else if (s->info.type == OBS_SOURCE_TYPE_INPUT &&
+				   !s->context.private &&
+				   !enum_proc(param, s)) {
+				obs_source_release(s);
+				break;
+			}
+			obs_source_release(s);
 		}
 
-		source = next_source;
+		source = (obs_source_t *)source->context.next;
 	}
 
 	pthread_mutex_unlock(&obs->data.sources_mutex);
@@ -1485,15 +1488,17 @@ void obs_enum_scenes(bool (*enum_proc)(void *, obs_source_t *), void *param)
 	source = obs->data.first_source;
 
 	while (source) {
-		obs_source_t *next_source =
-			(obs_source_t *)source->context.next;
-
-		if (source->info.type == OBS_SOURCE_TYPE_SCENE &&
-		    !source->context.private && !enum_proc(param, source)) {
-			break;
+		obs_source_t *s = obs_source_get_ref(source);
+		if (s) {
+			if (source->info.type == OBS_SOURCE_TYPE_SCENE &&
+			    !source->context.private && !enum_proc(param, s)) {
+				obs_source_release(s);
+				break;
+			}
+			obs_source_release(s);
 		}
 
-		source = next_source;
+		source = (obs_source_t *)source->context.next;
 	}
 
 	pthread_mutex_unlock(&obs->data.sources_mutex);
@@ -2175,7 +2180,6 @@ void obs_context_data_remove(struct obs_context_data *context)
 		if (context->next)
 			context->next->prev_next = context->prev_next;
 		context->prev_next = NULL;
-		context->next = (void *)(uintptr_t)0x12345678;
 		pthread_mutex_unlock(context->mutex);
 	}
 }
