@@ -148,6 +148,9 @@ static blocked_module_t blocked_modules[] = {
 	// Korean banking "security" software, crashes randomly
 	{L"\\t_prevent64.dll", 0, 0, TS_IGNORE},
 
+	// BamdiCam
+	{L"\\bdcam64.dll", 0, 0, TS_IGNORE},
+
 	// Generic named unity capture filter. Unfortunately only a forked version
 	// has a critical fix to prevent deadlocks during enumeration. We block
 	// all versions since if someone didn't change the DLL name they likely
@@ -164,6 +167,12 @@ static blocked_module_t blocked_modules[] = {
 	// Obsolete unfixed versions of VTuber Maker capture filter
 	{L"\\live3dvirtualcam\\lib64_new.dll", 0, 0, TS_IGNORE},
 	{L"\\live3dvirtualcam\\lib64.dll", 0, 0, TS_IGNORE},
+
+	// VirtualMotionCapture
+	{L"\\VMC_CameraFilter64bit.dll", 0, 1671346800, TS_LESS_THAN},
+
+	// HolisticMotionCapture
+	{L"\\HolisticMotionCaptureFilter64bit.dll", 0, 0, TS_IGNORE},
 };
 
 static bool is_module_blocked(wchar_t *dll, uint32_t timestamp)
