@@ -168,11 +168,11 @@ static blocked_module_t blocked_modules[] = {
 	{L"\\live3dvirtualcam\\lib64_new.dll", 0, 0, TS_IGNORE},
 	{L"\\live3dvirtualcam\\lib64.dll", 0, 0, TS_IGNORE},
 
-	// HolisticMotionCapture
-	{L"\\HolisticMotionCaptureFilter64bit.dll", 0, 0, TS_IGNORE},
-
 	// VirtualMotionCapture
-	{L"\\VMC_CameraFilter64bit.dll.dll", 0, 0, TS_IGNORE},
+	{L"\\vmc_camerafilter64bit.dll", 0, 1671346800, TS_LESS_THAN},
+
+	// HolisticMotionCapture
+	{L"\\holisticmotioncapturefilter64bit.dll", 0, 0, TS_IGNORE},
 };
 
 static bool is_module_blocked(wchar_t *dll, uint32_t timestamp)
