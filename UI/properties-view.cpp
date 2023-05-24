@@ -139,7 +139,7 @@ void OBSPropertiesView::RefreshProperties()
 	widget->setLayout(layout);
 
 	QSizePolicy mainPolicy(QSizePolicy::MinimumExpanding,
-			           QSizePolicy::MinimumExpanding);
+			       QSizePolicy::MinimumExpanding);
 
 	layout->setLabelAlignment(Qt::AlignRight);
 
@@ -155,7 +155,6 @@ void OBSPropertiesView::RefreshProperties()
 	setWidget(widget);
 	SetScrollPos(h, v,);
 	setSizePolicy(mainPolicy);
-	adjustSize();
 
 	lastFocused.clear();
 	if (lastWidget) {
