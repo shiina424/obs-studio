@@ -183,7 +183,7 @@ void OBSPropertiesView::SetScrollPos(int h, int v)
 	}
 }
 
-void OBSPropertiesView::GetScrollPos(int &h, int &v,)
+void OBSPropertiesView::GetScrollPos(int &h, int &v)
 {
 	h = v = 0;
 
