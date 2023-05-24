@@ -124,8 +124,8 @@ void OBSPropertiesView::ReloadProperties()
 
 void OBSPropertiesView::RefreshProperties()
 {
-	int h, v, hend, vend;
-	GetScrollPos(h, v, hend, vend);
+	int h, v;
+	GetScrollPos(h, v);
 
 	children.clear();
 	if (widget)
@@ -138,7 +138,8 @@ void OBSPropertiesView::RefreshProperties()
 	layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	widget->setLayout(layout);
 
-	QSizePolicy mainPolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	QSizePolicy mainPolicy(QSizePolicy::MinimumExpanding,
+			           QSizePolicy::MinimumExpanding);
 
 	layout->setLabelAlignment(Qt::AlignRight);
 
@@ -152,9 +153,9 @@ void OBSPropertiesView::RefreshProperties()
 
 	setWidgetResizable(true);
 	setWidget(widget);
+	SetScrollPos(h, v,);
 	setSizePolicy(mainPolicy);
 	adjustSize();
-	SetScrollPos(h, v, hend, vend);
 
 	lastFocused.clear();
 	if (lastWidget) {
@@ -170,36 +171,30 @@ void OBSPropertiesView::RefreshProperties()
 	emit PropertiesRefreshed();
 }
 
-void OBSPropertiesView::SetScrollPos(int h, int v, int old_hend, int old_vend)
+void OBSPropertiesView::SetScrollPos(int h, int v)
 {
 	QScrollBar *scroll = horizontalScrollBar();
-	if (scroll) {
-		int hend = scroll->maximum() + scroll->pageStep();
-		scroll->setValue(h * hend / old_hend);
+	if (scroll)
+		scroll->setValue(h);
 	}
 
 	scroll = verticalScrollBar();
-	if (scroll) {
-		int vend = scroll->maximum() + scroll->pageStep();
-		scroll->setValue(v * vend / old_vend);
+	if (scroll)
+		scroll->setValue(v);
 	}
 }
 
-void OBSPropertiesView::GetScrollPos(int &h, int &v, int &hend, int &vend)
+void OBSPropertiesView::GetScrollPos(int &h, int &v,)
 {
 	h = v = 0;
 
 	QScrollBar *scroll = horizontalScrollBar();
-	if (scroll) {
+	if (scroll)
 		h = scroll->value();
-		hend = scroll->maximum() + scroll->pageStep();
-	}
 
 	scroll = verticalScrollBar();
-	if (scroll) {
+	if (scroll)
 		v = scroll->value();
-		vend = scroll->maximum() + scroll->pageStep();
-	}
 }
 
 OBSPropertiesView::OBSPropertiesView(OBSData settings_, obs_object_t *obj,

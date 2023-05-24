@@ -137,8 +137,8 @@ private:
 
 	void resizeEvent(QResizeEvent *event) override;
 
-	void GetScrollPos(int &h, int &v, int &hend, int &vend);
-	void SetScrollPos(int h, int v, int old_hend, int old_vend);
+	void GetScrollPos(int &h, int &v);
+	void SetScrollPos(int h, int v);
 
 private slots:
 	void RefreshProperties();
