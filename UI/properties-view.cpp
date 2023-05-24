@@ -175,12 +175,10 @@ void OBSPropertiesView::SetScrollPos(int h, int v)
 	QScrollBar *scroll = horizontalScrollBar();
 	if (scroll)
 		scroll->setValue(h);
-	}
 
 	scroll = verticalScrollBar();
 	if (scroll)
 		scroll->setValue(v);
-	}
 }
 
 void OBSPropertiesView::GetScrollPos(int &h, int &v)
