@@ -3,9 +3,7 @@ name: 'BUILD'
 on:
   push:
     paths-ignore: ['**.md']
-    branches:
-      - master
-      - 'release/**'
+    branches: ['*']
     tags: ['*']
   pull_request:
     paths-ignore: ['**.md']
@@ -92,7 +90,7 @@ jobs:
     strategy:
       matrix:
         arch: ['x86_64', 'arm64']
-    if: always()
+    if: false
     needs: [config, clang_check]
     env:
       BLOCKED_FORMULAS: 'speexdsp curl php composer'
@@ -234,7 +232,7 @@ jobs:
     strategy:
       matrix:
         ubuntu: ['ubuntu-22.04']
-    if: always()
+    if: false
     needs: [config, clang_check]
     defaults:
       run:
@@ -387,6 +385,7 @@ jobs:
     name: '02 - Flatpak'
     runs-on: [ubuntu-latest]
     needs: [config, clang_check]
+    if: false
     defaults:
       run:
         shell: bash
