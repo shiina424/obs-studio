@@ -137,9 +137,9 @@ void OBSPropertiesView::RefreshProperties()
 		obs_property_next(&property);
 	}
 
+	adjustSize();
 	setWidgetResizable(true);
 	setWidget(widget);
-	adjustSize();
 	SetScrollPos(h, v);
 	setSizePolicy(mainPolicy);
 
