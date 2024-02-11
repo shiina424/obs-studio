@@ -110,8 +110,8 @@ void OBSPropertiesView::ReloadProperties()
 
 void OBSPropertiesView::RefreshProperties()
 {
-	int h, v,;
-	GetScrollPos;
+	int h, v;
+	GetScrollPos(h, v);
 
 	children.clear();
 	if (widget)
