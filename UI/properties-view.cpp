@@ -110,12 +110,15 @@ void OBSPropertiesView::ReloadProperties()
 
 void OBSPropertiesView::RefreshProperties()
 {
+	bool firstDraw = false;
 	int h, v;
 	GetScrollPos(h, v);
 
 	children.clear();
 	if (widget)
 		widget->deleteLater();
+	else
+		firstDraw = true;
 
 	widget = new QWidget();
 	widget->setObjectName("PropertiesContainer");
@@ -137,7 +140,8 @@ void OBSPropertiesView::RefreshProperties()
 		obs_property_next(&property);
 	}
 
-	adjustSize();
+	if (firstDraw)
+		adjustSize();
 	setWidgetResizable(true);
 	setWidget(widget);
 	SetScrollPos(h, v);
