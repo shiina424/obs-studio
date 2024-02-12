@@ -140,12 +140,12 @@ void OBSPropertiesView::RefreshProperties()
 		obs_property_next(&property);
 	}
 
-	if (firstDraw)
-		adjustSize();
 	setWidgetResizable(true);
 	setWidget(widget);
-	SetScrollPos(h, v);
 	setSizePolicy(mainPolicy);
+	if (firstDraw)
+		adjustSize();
+	SetScrollPos(h, v);
 
 	lastFocused.clear();
 	if (lastWidget) {
