@@ -138,10 +138,10 @@ void OBSPropertiesView::RefreshProperties()
 	}
 
 	setWidgetResizable(true);
-	setWidget(widget);
 	adjustSize();
-	setSizePolicy(mainPolicy);
+	setWidget(widget);
 	SetScrollPos(h, v);
+	setSizePolicy(mainPolicy);
 
 	lastFocused.clear();
 	if (lastWidget) {
