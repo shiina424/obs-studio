@@ -458,7 +458,7 @@ void YouTubeAppDock::CleanupYouTubeUrls()
 			blog(LOG_DEBUG, "YT: found legacy url: %s",
 			     url.c_str());
 			removedYTUrl += url;
-			removedYTUrl += ";\n";
+			removedYTUrl += "\n";
 		} else {
 			save_array.push_back(item);
 		}
